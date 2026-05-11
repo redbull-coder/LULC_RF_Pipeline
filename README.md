@@ -1,12 +1,80 @@
-# rcPy-Error-000732-Debug-Log
-第一版：error000732，样本进入分类器失败，需要调用别年才可分类，不符合规范，弃用
+# 📊 LULC_RF_Pipeline（土地利用/覆盖分类随机森林流程）
 
-第二版：放弃aecpy预处理改用gee完成预处理环节，使用b2 b3 b4 b8，合成三波段进行分类，精度62%左右，修复精度中的地物类别与分类地物类别数字匹配失败问题，弃用随机撒点，改为分类抽样，部分样本点不参与分类，用于精度计算
+> **双语说明 / Bilingual (English / 中文)**
 
-第三版：加入b11 ndvi ndwi ndbi bsi波段（9波段），加入过采样，精度69%左右，提升比预期小，裸地与建筑，草地还是分不清
+---
 
-第四版：gee坑我！！！b11为全部空，导致ndbi与bsi都全部为空，修复空值后加入b5 b6 b7（精度71%左右），加入局部方差代（b8）替GLCM作为第13波段后精度到达75%，加入ndvi方差作为第14波段反而降低至73%左右，但把ndvi方差作为第13波段又能到达75%的精度，弃用14波段版，后续使用b8的13波段版加入循环处理，或尝试加入dem与坡度，但考虑到横沥镇可能较为平坦且dem为30m，需要考虑再抉择
+## 1️⃣ 项目简介 / Project Overview
 
-第五版：自适应过采样（取代原来只过采样建筑用地）不再只对类别8过采样×2，根据原始像元数量自动决定过采样倍数：原始像元 < 10,000 → 过采样 ×3（主要是类别4和7），原始像元 < 50,000 → 过采样 ×2（类别8建筑用地），其他大类保持 ×1，这样小样本类别（尤其是4和7）得到了更多关注。随机森林参数调整：树的数量从 250 → 300。ao77%kappa73%，还是草地裸地建筑分的最差
+**中文：**
+本项目实现基于 Sentinel-2 和 CLCD 数据的土地利用/覆盖（LULC）分类流程，使用随机森林分类器，支持全图预测、循环年份处理、精度评估，以及边界裁剪。
 
-第六版：加入循环，使用GDAL保存修复分类结果图全图nodata问题，还加入边界裁剪，出图即可开始制图
+**English:**
+This project implements a Land Use / Land Cover (LULC) classification pipeline using Sentinel-2 and CLCD data. It leverages a Random Forest classifier, supporting full-scene prediction, multi-year iterative processing, accuracy assessment, and boundary clipping.
+
+---
+
+## 2️⃣ 仓库结构 / Repository Structure
+
+```
+scripts/                     # Python 脚本 / Python scripts
+├─ .gitkeep                   # 占位文件 / Placeholder
+├─ lulc_pipeline_v1.py        # 第1版 / v1 (弃用)
+├─ lulc_pipeline_v2.py        # 第2版 / v2
+├─ lulc_pipeline_v3.py        # 第3版 / v3
+├─ lulc_pipeline_v4.py        # 第4版 / v4
+├─ lulc_pipeline_v5.py        # 第5版 / v5
+
+
+lulc_pipeline_v6.py          # 第6版 / v6 最新版本 / latest version
+.gitignore                    # Git 忽略规则 / Git ignore rules
+README.md                     # 本 README
+gee_lulc_preprocess.js        # GEE 预处理脚本 / GEE preprocessing
+```
+
+---
+
+## 3️⃣ 环境依赖 / Dependencies
+
+* **Python ≥3.8**
+* **主要库 / Key Libraries:**
+
+```bash
+pip install numpy scikit-learn gdal
+# ArcGIS Python 环境需要 arcpy
+# GEE 脚本在 Google Earth Engine 代码编辑器运行
+```
+
+---
+
+
+
+## 5️⃣ 版本历史 / Changelog
+
+**中文：**
+
+* **v1 (弃用)**：Error000732，样本进入分类器失败，不符合规范，弃用
+* **v2**：放弃 aecpy 预处理，改用 GEE，B2/B3/B4/B8 三波段分类，精度 ~62%，修复类别数字匹配问题，弃用随机撒点
+* **v3**：加入 B11、NDVI、NDWI、NDBI、BSI（共 9 波段），加入过采样，精度 ~69%，裸地/建筑/草地仍难区分
+* **v4**：修复空值，加入 B5/B6/B7 波段，局部方差代替 GLCM 作为第13波段，精度 ~75%，弃用 NDVI 方差作为第14波段
+* **v5**：自适应过采样，RF 树数 300，精度 OA 77%、Kappa 73%，小类别关注增强
+* **v6 (当前版本)**：循环处理，全图 GDAL 保存，边界裁剪，直接出图，精度 OA 77%、Kappa 73%
+
+**English:**
+
+* **v1 (Deprecated)**: Error000732, samples failed to enter classifier, did not meet specification
+* **v2**: Abandoned aecpy preprocessing, switched to GEE, used B2/B3/B4/B8 3-band classification, accuracy ~62%, fixed class number matching, deprecated random points
+* **v3**: Added B11, NDVI, NDWI, NDBI, BSI (9 bands), oversampling included, accuracy ~69%, bare land/building/grass still difficult to separate
+* **v4**: Fixed empty bands, added B5/B6/B7, local variance replaced GLCM as 13th band, accuracy ~75%, discarded NDVI variance as 14th band
+* **v5**: Adaptive oversampling, RF trees 300, accuracy OA 77%, Kappa 73%, small classes enhanced
+* **v6 (current version)**: Iterative multi-year processing, full-scene GDAL saving, boundary clipping, ready for mapping, accuracy OA 77%, Kappa 73%
+
+---
+
+## 6️⃣ Git 忽略规则 / .gitignore
+
+* Python 临时文件：`__pycache__/ *.pyc *.pyo`
+* ArcGIS 输出：`*.gdb *.lyr *.lock *.aux *.xml`
+* 栅格输出：`*.tif *.tiff *.img`
+* GEE 导出文件：`*.csv *.json`
+* 本地配置文件：`config_local.yaml`
