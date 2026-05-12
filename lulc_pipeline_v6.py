@@ -26,7 +26,7 @@ MIN_SAMPLES = 50
 BAND_NAMES = ["B2", "B3", "B4", "B8", "B5", "B6", "B7", "B11", "NDVI", "NDWI", "NDBI", "BSI"]
 TEXTURE_NAME = "B8_STD"
 
-label_map = {1:"耕地", 2:"林地", 4:"水域", 5:"草地", 7:"裸地", 8:"建筑用地"}
+label_map = {1:"耕地", 2:"林地", 4:"草地", 5:"水域", 7:"裸地", 8:"建筑用地"}
 
 YEAR_CONFIG = {
     2020: {
